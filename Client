@@ -1,0 +1,61 @@
+#include <iostream>
+#include<WinSock2.h>
+#include <WS2tcpip.h>
+#pragma comment (lib,"ws2_32.lib")
+using namespace std;
+
+void init_WSA();//套接字初始化函数
+
+SOCKET ConnSocket;//客户端
+SOCKADDR_IN servaddr;//保存当前端IP地址信息
+SOCKADDR_IN clientaddr;//保存客户端的IP地址信息
+int len = sizeof(SOCKADDR);
+//端口号设置和修改
+unsigned short DestiontionPort = 45678;
+unsigned short SourcePort = 13333;
+const char* DestiontionIP = "127.0.0.1";
+const char* SourceIP = "127.0.0.1";
+
+
+int main()
+{
+    init_WSA();
+    cout << "建立连接........." << endl;
+    if (connect(ConnSocket, (SOCKADDR*)&servaddr, sizeof(SOCKADDR)) == 0) {
+        cout << "服务器连接成功！" << endl;
+    }
+
+    closesocket(ConnSocket);
+    WSACleanup();
+    //send(ConnSocket, (char*)pkt, 5136, 0);//传输密文
+}
+
+void init_WSA()
+{
+    WSADATA data;
+    WORD version = MAKEWORD(2, 2);
+    int info = WSAStartup(version, &data);
+    if (info != 0) {
+        cout << "WSAStartup failed with error: " << info << endl;
+        return;
+    }
+    if (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2)
+    {
+        cout << "Could not find a usable version of Winsock.dll" << endl;
+        WSACleanup();
+    }
+
+    ConnSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);//AF_INET使用IPV4地址，使用数据包客户端
+
+
+    servaddr.sin_port = htons(DestiontionPort);//端口要与服务器相同
+    servaddr.sin_family = AF_INET;    //用IPV4地址
+    servaddr.sin_addr.S_un.S_addr = inet_addr(DestiontionIP);
+
+
+    clientaddr.sin_family = AF_INET;//使用ipv4的地址
+    clientaddr.sin_port = htons(SourcePort);//设定应用占用的端口
+    clientaddr.sin_addr.S_un.S_addr = inet_addr(SourceIP);
+    
+
+};
